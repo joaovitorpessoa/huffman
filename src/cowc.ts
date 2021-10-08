@@ -16,10 +16,16 @@ class HuffmanCompressor {
   }
 
   sortInitialNodes(): void {
+    /**
+     * ordena pela frequencia, se tiver frequencia repetida, ordena pela char
+     */
+
     const priorityQueue: IHuffmanNode[] = [];
 
     this.huffmanTree.initialNodes.forEach((node) => {
-      priorityQueue.findIndex((item) => item === node);
+      const index = priorityQueue.findIndex((item) => item.char === node.char);
+
+      priorityQueue.at();
     });
   }
 
