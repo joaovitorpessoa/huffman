@@ -1,61 +1,82 @@
-interface IHuffmanNode {
+interface IChar {
   char: string;
+  ascii: number;
   frequency: number;
-}
-
-interface IHuffmanTree {
-  initialNodes: IHuffmanNode[];
-  tree: any;
+  tree?: object;
 }
 
 class HuffmanCompressor {
-  huffmanTree: IHuffmanTree = { initialNodes: [], tree: "" };
+  chars: IChar[] = [];
 
-  registerInitialNode(char: string): void {
-    this.huffmanTree.initialNodes.push({ char, frequency: 1 });
+  execute(phrase: string) {
+    this.discoverCharFrequency(phrase);
+    this.sortByFrequency();
+    this.compress();
+
+    return this.chars[0];
   }
 
-  sortInitialNodes(): void {
-    /**
-     * ordena pela frequencia, se tiver frequencia repetida, ordena pela char
-     */
-
-    const priorityQueue: IHuffmanNode[] = [];
-
-    this.huffmanTree.initialNodes.forEach((node) => {
-      const index = priorityQueue.findIndex((item) => item.char === node.char);
-
-      priorityQueue.at();
-    });
-  }
-
-  discoverInitialNodes(text: string): void {
-    for (let char = 0; char < text.length; char++) {
-      const charAlreadyRegister = this.huffmanTree.initialNodes.find(
-        (item) => item.char === text[char]
+  discoverCharFrequency(phrase: string) {
+    phrase
+      .split("")
+      .forEach((char) =>
+        this.isCharAlreadyRegistered(char)
+          ? this.incrementFrequency(char)
+          : this.registerChar(char)
       );
-
-      charAlreadyRegister
-        ? charAlreadyRegister.frequency++
-        : this.registerInitialNode(text[char]);
-    }
-
-    this.sortInitialNodes();
   }
 
-  execute(text: string) {
-    this.discoverInitialNodes(text);
+  registerChar(char: string) {
+    this.chars.push({ char, ascii: char.charCodeAt(0), frequency: 1 });
+  }
+
+  isCharAlreadyRegistered(char: string) {
+    for (const { ascii } of this.chars) {
+      if (ascii === char.charCodeAt(0)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  incrementFrequency(char: string) {
+    this.findChar(char).frequency++;
+  }
+
+  findChar(target: string) {
+    const [char] = this.chars.filter(({ char }) => char == target);
+    return char;
+  }
+
+  sortByFrequency() {
+    this.chars.sort(({ frequency: a }, { frequency: b }) => a - b);
+  }
+
+  compress() {
+    const FIRST_ITEM_OF_ARRAY = this.chars[0];
+    const SECOND_ITEM_OF_ARRAY = this.chars[1];
+
+    this.chars.push({
+      char: "+",
+      frequency: FIRST_ITEM_OF_ARRAY.frequency + SECOND_ITEM_OF_ARRAY.frequency,
+      ascii: "+".charCodeAt(0),
+      tree: {
+        [FIRST_ITEM_OF_ARRAY.char]: FIRST_ITEM_OF_ARRAY,
+        [SECOND_ITEM_OF_ARRAY.char]: SECOND_ITEM_OF_ARRAY,
+      },
+    });
+
+    this.removeTheFirstNChars(2);
+    this.sortByFrequency();
+
+    if (this.chars.length !== 1) {
+      this.compress();
+    }
+  }
+
+  removeTheFirstNChars(n: number) {
+    this.chars.splice(0, n);
   }
 }
 
-const huffmanCompressor = new HuffmanCompressor();
-
-// const output = huffmanCompressor.getFrequency("soooss");
-
-// console.log(" ".charCodeAt(0));
-// console.log(output);
-/**
- * Iterar na string;
- * Pesquisa se já tem o char no array, se tiver, incrementa a frequency dele
- * Após término da string, dá sorte no array considerando frequency e valor do char segundo tabela ascii (.charCodeAt)
- */
+export default HuffmanCompressor;
